@@ -18,23 +18,14 @@ export default async function handler(request, response) {
     response.status(400).json({ message: "Method not implemented" });
     return;
   }
+  const form = formidable({});
 
-  await new Promise((resolve, reject) => {
-    const form = formidable({});
-    form.parse(request, async (error, fields, files) => {
-      if (error) {
-        reject(error);
-      } else {
-        const { file } = files;
-        const { newFilename, filepath } = file;
-        const result = await cloudinary.v2.uploader.upload(filepath, {
-          public_id: newFilename,
-          folder: "nf",
-        });
-        console.log("API: response from cloudinary: ", result);
-        response.status(201).json(result);
-        resolve();
-      }
-    });
+  const [, files] = await form.parse(request);
+  const { filepath, newFilename } = files.file[0];
+
+  const result = await cloudinary.v2.uploader.upload(filepath, {
+    public_id: newFilename,
   });
+  console.log("API: response from cloudinary: ", result);
+  return response.status(201).json(result);
 }
